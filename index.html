@@ -1,0 +1,167 @@
+<!DOCTYPE html><html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Eid Frame Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Hind Siliguri', sans-serif;
+    background: linear-gradient(135deg,#f5e6c8,#f1d9a6);
+    text-align: center;
+    color: #5a2a00;
+  }
+  h3 {
+    margin-top: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  canvas {
+    max-width: 95%;
+    margin-top: 10px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    touch-action: none;
+  }
+  .controls {
+    margin: 15px 0;
+  }
+  button {
+    margin: 6px;
+    padding: 12px 18px;
+    border-radius: 30px;
+    border: none;
+    background: linear-gradient(45deg,#ff3c00,#ff7a00);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255,80,0,0.4);
+    transition: 0.2s ease;
+  }
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,80,0,0.6);
+  }
+  input {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background: white;
+  }
+  p {
+    margin: 5px;
+    font-size: 14px;
+    opacity: 0.8;
+  }
+</style>
+</head>
+<body><h3>✨ ঈদ ফটো ফ্রেম এডিটর</h3><input type="file" id="upload" accept="image/*" />
+<p>📷 ছবি সিলেক্ট করুন</p><div>
+  <canvas id="canvas"></canvas>
+</div><div class="controls">
+  <button onclick="zoomIn()">🔍 জুম +</button>
+  <button onclick="zoomOut()">🔍 জুম -</button>
+  <button onclick="downloadImage()">⬇️ সেভ করুন</button>
+</div><script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let userImg = new Image();
+let frameImg = new Image();
+
+let scale = 1;
+let posX = 0;
+let posY = 0;
+let dragging = false;
+let startX, startY;
+
+frameImg.src = 'frame.png';
+
+frameImg.onload = () => {
+  canvas.width = frameImg.width;
+  canvas.height = frameImg.height;
+  draw();
+};
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (userImg.src) {
+    const w = userImg.width * scale;
+    const h = userImg.height * scale;
+    ctx.drawImage(userImg, posX, posY, w, h);
+  }
+
+  ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+}
+
+document.getElementById('upload').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    userImg.src = evt.target.result;
+    userImg.onload = () => {
+      scale = canvas.width / userImg.width;
+      posX = 0;
+      posY = 0;
+      draw();
+    };
+  };
+  reader.readAsDataURL(file);
+});
+
+canvas.addEventListener('mousedown', (e) => {
+  dragging = true;
+  startX = e.clientX - posX;
+  startY = e.clientY - posY;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (dragging) {
+    posX = e.clientX - startX;
+    posY = e.clientY - startY;
+    draw();
+  }
+});
+
+canvas.addEventListener('mouseup', () => dragging = false);
+canvas.addEventListener('mouseleave', () => dragging = false);
+
+canvas.addEventListener('touchstart', (e) => {
+  dragging = true;
+  startX = e.touches[0].clientX - posX;
+  startY = e.touches[0].clientY - posY;
+});
+
+canvas.addEventListener('touchmove', (e) => {
+  if (dragging) {
+    posX = e.touches[0].clientX - startX;
+    posY = e.touches[0].clientY - startY;
+    draw();
+  }
+});
+
+canvas.addEventListener('touchend', () => dragging = false);
+
+function zoomIn() {
+  scale += 0.1;
+  draw();
+}
+
+function zoomOut() {
+  scale -= 0.1;
+  draw();
+}
+
+function downloadImage() {
+  const link = document.createElement('a');
+  link.download = 'eid-frame.jpg';
+  link.href = canvas.toDataURL('image/jpeg', 0.95);
+  link.click();
+}
+</script></body>
+    </html>
